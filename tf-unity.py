@@ -1,15 +1,8 @@
-# import gym
-from gym_unity.envs import UnityEnv
-
-env = UnityEnv("./grid-world-macos-3.app", worker_id=1, use_visual=True, uint8_visual=True)
-print(env.action_space)
+import suite_unity
 
 import tensorflow as tf
 
-from tf_agents.environments import suite_gym
-
 from tf_agents.environments import utils
-
 from tf_agents.networks import q_network
 from tf_agents.metrics import tf_metrics
 from tf_agents.agents.dqn import dqn_agent
@@ -22,7 +15,14 @@ from tf_agents.replay_buffers import tf_uniform_replay_buffer
 
 from tf_agents.utils import common
 
-tf_py_env = suite_gym.wrap_env(env, discount=0.7)
+print('Loading executable...')
+tf_py_env = suite_unity.load(
+    'RABMLPiscine.app',
+    worker_id=1,
+    use_visual=True,
+    uint8_visual=True)
+print('Executable loaded!')
+
 # validate won't work
 # see random_walk function below
 # utils.validate_py_environment(tf_py_env)
