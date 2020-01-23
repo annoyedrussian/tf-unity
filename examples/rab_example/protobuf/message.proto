@@ -1,0 +1,25 @@
+syntax = 'proto3';
+
+message ProtoGameDetail {
+   repeated float rotationGlobalClawArm = 1;
+   repeated float rotationGlobalStickArm = 2;
+   repeated float rotationClawArm = 3;
+   repeated float rotationStickArm = 4;
+   repeated float ClawCartPosition = 5;
+   repeated float ClawCartVelocity = 6;
+   repeated float StickCartPosition = 7;
+   repeated bool ClawController = 8;
+   repeated bytes ImageByteBlock = 9;
+   repeated bytes ImageByteBP = 10;
+   repeated int32 CurrentBPScore = 11;
+   repeated int32 CurrentScore = 12;
+   repeated int32 BlockCount = 13;
+   repeated bool PlayerControls = 14;
+   repeated float BlocksPosition = 15;
+   repeated int32 BunnyCount = 16;
+   repeated float BunniesPosition = 17;
+   string Name = 18;
+   string FeedBack = 19;
+   int32 FinalScore = 20;
+   repeated bool switchScene = 21;
+}

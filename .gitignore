@@ -130,3 +130,4 @@ dmypy.json
 
 *csharp_timers.json*
 *.DS_Store
+examples/rab_example/*/message_pb2.py
