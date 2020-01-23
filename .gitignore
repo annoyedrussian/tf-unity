@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 *csharp_timers.json*
+*.DS_Store
