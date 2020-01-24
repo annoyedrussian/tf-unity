@@ -12,3 +12,10 @@ msg.ParseFromString(msg_bytes)
 print('Msg debug info')
 print(msg.Name)
 print(msg.FeedBack)
+asd = len(msg.BlockCount)
+print(len(msg.BlockCount))
+print(len(msg.CurrentScore))
+print(len(msg.PlayerControls) / asd)
+
+asd = [x for x in msg.ClawController if x > 0]
+print(len(asd))
