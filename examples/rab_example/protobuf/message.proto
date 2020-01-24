@@ -13,8 +13,8 @@ message ProtoGameDetail {
    repeated bytes ImageByteBP = 10;
    repeated int32 CurrentBPScore = 11;
    repeated int32 CurrentScore = 12;
-   repeated int32 BlockCount = 13;
-   repeated bool PlayerControls = 14;
+   repeated bool PlayerControls = 13;
+   repeated int32 BlockCount = 14;
    repeated float BlocksPosition = 15;
    repeated int32 BunnyCount = 16;
    repeated float BunniesPosition = 17;
