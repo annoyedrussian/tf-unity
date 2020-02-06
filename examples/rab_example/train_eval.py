@@ -18,11 +18,17 @@ import suite_unity
 def train_eval(
         root_dir,
         env_name='RABMLPiscine3.0_AdjustedTraining.app',
-        num_iterations=100000,
-        fc_layer_params=(100,),
+        discount=0.7,
+        num_iterations=10000,
+        num_pretrain_iterations=1000,
+        eval_interval=1000,
+        collect_interval=100,
+        log_interval=100,
+        fc_layer_params=(256, 256, 128),
         batch_size=64,
         learning_rate=1e-3,
-        collect_steps_per_iteration=1,
+        collect_steps_per_iteration=100,
+        initial_collect=False,
         initial_collect_steps=1000,
         replay_buffer_capacity=100000):
     """A train and eval for DQN with unity environment"""
@@ -61,6 +67,7 @@ def train_eval(
     inital_collect_policy = random_tf_policy.RandomTFPolicy(
         tf_env.time_step_spec(), tf_env.action_spec())
 
+    if initial_collect:
     dynamic_step_driver.DynamicStepDriver(
         tf_env,
         inital_collect_policy,
