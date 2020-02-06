@@ -118,3 +118,6 @@ def normalize_actions(actions):
         normalized_actions.append([current_action])
 
     return np.array(normalized_actions, dtype=np.int32)
+
+if __name__ == '__main__':
+    asd = decode_protobuf('protobuf/example3.b64', transform_protobuf)
