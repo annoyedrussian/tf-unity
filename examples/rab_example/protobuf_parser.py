@@ -25,14 +25,20 @@ def decode_protobuf(filename, prepare_fn=None):
 def transform_protobuf(protobuf):
     """ Returns numpy corresponding to tf agents time_step properties"""
 
-    log('transform_protobuf stated')
+    log('transform_protobuf started')
 
-    protobuf_len = len(protobuf.CurrentScore)
+    log('ClawOpen length is {}'.format(len(protobuf.ClawOpen)))
+    log('BlockCount length is {}'.format(len(protobuf.BlockCount)))
+    log('BlocksPosition length is {}'.format(len(protobuf.BlocksPosition)))
+    log('CurrentBPScore length is {}'.format(len(protobuf.CurrentBPScore)))
+
+    protobuf_len = len(protobuf.CurrentBPScore)
     max_blocks = protobuf.BlockCount[0]
 
     log('protobuf contains {} steps'.format(protobuf_len))
     log('max blocks value is {}'.format(max_blocks))
 
+    log('block positions recieved {}'.format(len(protobuf.BlocksPosition)))
     observations = [
         np.expand_dims(np.array(protobuf.BlockCount, dtype=np.int32), axis=1),
         np.array(protobuf.BlocksPosition, dtype=np.float).reshape(protobuf_len, max_blocks * 2),
@@ -77,7 +83,8 @@ def transform_protobuf(protobuf):
     step_types = np.array(
         list(map(get_step_types, protobuf.CurrentScore)),
         dtype=np.int32)
-    next_step_type = step_types[1:] + [ts.StepType.LAST]
+    log('step types len is {}'.format(len(step_types)))
+    log('next step types len is {}'.format(len(next_step_types)))
 
     return {
         'actions': actions,
