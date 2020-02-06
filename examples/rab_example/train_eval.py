@@ -34,9 +34,9 @@ def train_eval(
 
     tf_py_env = suite_unity.load(
         env_path,
+        discount=discount,
         worker_id=1,
-        use_visual=True,
-        uint8_visual=True)
+        use_visual=False)
     tf_env = tf_py_environment.TFPyEnvironment(tf_py_env)
 
     q_net = q_network.QNetwork(
