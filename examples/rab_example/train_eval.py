@@ -4,13 +4,45 @@ import tensorflow as tf
 
 from tf_agents.utils import common
 from tf_agents.networks import q_network
+from tf_agents.metrics import tf_metrics
 from tf_agents.agents.dqn import dqn_agent
+from tf_agents.trajectories import trajectory
 from tf_agents.policies import random_tf_policy
-from tf_agents.drivers import dynamic_step_driver
+from tf_agents.drivers import dynamic_step_driver, dynamic_episode_driver
 from tf_agents.environments import tf_py_environment
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 
+from protobuf_parser import decode_protobuf, transform_protobuf
+
 import suite_unity
+
+def populate_replay_buffer(traj_data, replay_buffer, discount=1.0):
+    """ Populates replay buffer with decoded trajectory data
+
+    Args:
+        traj_data: Decoded trajectory data
+        replay_buffer: Replay buffer
+        discount: Environment dicsount
+
+    Returns:
+        None
+    """
+    length = len(traj_data['step_types'])
+
+    for idx in range(length):
+        step_type = tf.convert_to_tensor(
+            traj_data['step_types'][idx], traj_data['step_types'].dtype)
+        observation = tf.convert_to_tensor(
+            traj_data['observations'][idx], traj_data['observations'].dtype)
+        action = tf.convert_to_tensor(traj_data['actions'][idx], traj_data['actions'].dtype)
+        policy_info = ()
+        next_step_type = tf.convert_to_tensor(
+            traj_data['next_step_types'][idx], traj_data['next_step_types'].dtype)
+        reward = tf.convert_to_tensor(traj_data['rewards'][idx], traj_data['rewards'].dtype)
+        discount = tf.convert_to_tensor(discount, tf.float32)
+        traj = trajectory.Trajectory(
+            step_type, observation, action, policy_info, next_step_type, reward, discount)
+        replay_buffer.add_batch(traj)
 
 # todo: add checkpoints
 # todo: add tensorboard and summaries
@@ -92,6 +124,9 @@ def train_eval(
 
     time_step = None
     policy_state = tf_agent.collect_policy.get_initial_state(tf_env.batch_size)
+
+    traj_data = decode_protobuf('protobuf/example3.b64', transform_protobuf)
+    populate_replay_buffer(traj_data, replay_buffer, discount=discount)
 
     for _ in range(num_iterations):
         time_step, policy_state = collect_driver.run(
