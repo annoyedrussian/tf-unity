@@ -112,6 +112,13 @@ def train_eval(
         observers=[replay_buffer.add_batch],
         num_steps=collect_steps_per_iteration)
 
+    eval_avg_return_metric = tf_metrics.AverageReturnMetric()
+    eval_driver = dynamic_episode_driver.DynamicEpisodeDriver(
+        tf_env,
+        tf_agent.policy,
+        observers=[eval_avg_return_metric],
+        num_episodes=1)
+
     dataset = replay_buffer.as_dataset(
         num_parallel_calls=3,
         sample_batch_size=batch_size,
