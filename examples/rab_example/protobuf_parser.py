@@ -88,11 +88,21 @@ def transform_protobuf(protobuf):
     log('next step types len is {}'.format(len(next_step_types)))
 
     return {
-        'actions': actions,
+        'actions': normalize_actions(actions),
         'observations': observations,
         'rewards': rewards,
         'step_types': step_types,
         'next_step_types': next_step_types,
     }
 
-print(decode_protobuf('protobuf/example1.b64', transform_protobuf)['step_types'])
+def normalize_actions(actions):
+    last_action = 0
+    normalized_actions = []
+
+    for action in actions:
+        current_action = np.where(action == 1)[0]
+        current_action = last_action if len(current_action) == 0 else current_action[0]
+        last_action = 0 if current_action == 9 else current_action
+        normalized_actions.append([current_action])
+
+    return np.array(normalized_actions, dtype=np.int32)
