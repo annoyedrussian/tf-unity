@@ -39,6 +39,18 @@ def transform_protobuf(protobuf):
     log('max blocks value is {}'.format(max_blocks))
 
     log('block positions recieved {}'.format(len(protobuf.BlocksPosition)))
+
+    block_positons = protobuf.BlocksPosition[:protobuf_len * max_blocks * 2]
+    claw_positions = protobuf.ClawPosition[:protobuf_len * 2]
+    rotation_global_claw_arm = protobuf.rotationGlobalClawArm[:protobuf_len * 3]
+    rotation_claw_arm = protobuf.rotationClawArm[:protobuf_len * 3]
+    block_count = protobuf.BlockCount[:protobuf_len]
+    claw_cart_position = protobuf.ClawPosition[:protobuf_len]
+    claw_cart_velocity = protobuf.ClawCartVelocity[:protobuf_len]
+    claw_open = protobuf.ClawOpen[:protobuf_len]
+    claw_facing_ground = protobuf.ClawFacingGround[:protobuf_len]
+    current_bp_score = protobuf.CurrentBPScore[:protobuf_len]
+
     observations = [
         np.expand_dims(np.array(block_count, dtype=np.float32), axis=1),
         np.array(block_positons, dtype=np.float32).reshape(protobuf_len, max_blocks * 2),
@@ -76,8 +88,8 @@ def transform_protobuf(protobuf):
 
     prev_score = 0
     rewards = np.array(
-        list(map(transform_rewards, protobuf.CurrentScore)),
-        dtype=np.int32)
+        list(map(transform_rewards, current_bp_score)),
+        dtype=np.float32)
     prev_score = 0
     prev_step_type = None
     step_types = np.array(
