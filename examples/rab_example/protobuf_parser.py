@@ -40,17 +40,17 @@ def transform_protobuf(protobuf):
 
     log('block positions recieved {}'.format(len(protobuf.BlocksPosition)))
     observations = [
-        np.expand_dims(np.array(protobuf.BlockCount, dtype=np.int32), axis=1),
-        np.array(protobuf.BlocksPosition, dtype=np.float).reshape(protobuf_len, max_blocks * 2),
-        np.expand_dims(np.array(protobuf.ClawCartPosition, dtype=np.float), axis=1),
-        # missing claw pos x and y
-        np.array(protobuf.rotationGlobalClawArm, dtype=np.float).reshape(protobuf_len, 3),
-        np.array(protobuf.rotationClawArm, dtype=np.float).reshape(protobuf_len, 3),
-        np.expand_dims(np.array(protobuf.ClawCartVelocity, dtype=np.float), axis=1),
-        # # missing claw ground
-        # # missing claw closed
-        np.expand_dims(np.array(protobuf.CurrentBPScore, dtype=np.int32), axis=1),
-        np.expand_dims(np.array(protobuf.CurrentScore, dtype=np.int32), axis=1),
+        np.expand_dims(np.array(block_count, dtype=np.float32), axis=1),
+        np.array(block_positons, dtype=np.float32).reshape(protobuf_len, max_blocks * 2),
+        np.expand_dims(np.array(claw_cart_position, dtype=np.float32), axis=1),
+        np.array(claw_positions, dtype=np.float32).reshape(protobuf_len, 2),
+        np.array(rotation_global_claw_arm, dtype=np.float32).reshape(protobuf_len, 3),
+        np.array(rotation_claw_arm, dtype=np.float32).reshape(protobuf_len, 3),
+        np.expand_dims(np.array(claw_cart_velocity, dtype=np.float32), axis=1),
+        np.expand_dims(np.array(claw_open, dtype=np.float32), axis=1),
+        np.expand_dims(np.array(claw_facing_ground, dtype=np.float32), axis=1),
+        np.expand_dims(np.array(current_bp_score, dtype=np.float32), axis=1),
+        # np.expand_dims(np.array(protobuf.CurrentScore, dtype=np.int32), axis=1),
     ]
     observations = np.hstack(observations)
 
@@ -83,6 +83,7 @@ def transform_protobuf(protobuf):
     step_types = np.array(
         list(map(get_step_types, protobuf.CurrentScore)),
         dtype=np.int32)
+    next_step_types = np.concatenate((step_types[1:], [ts.StepType.LAST]))
     log('step types len is {}'.format(len(step_types)))
     log('next step types len is {}'.format(len(next_step_types)))
 
@@ -91,7 +92,7 @@ def transform_protobuf(protobuf):
         'observations': observations,
         'rewards': rewards,
         'step_types': step_types,
-        'next_step_type': next_step_type,
+        'next_step_types': next_step_types,
     }
 
 print(decode_protobuf('protobuf/example1.b64', transform_protobuf)['step_types'])
