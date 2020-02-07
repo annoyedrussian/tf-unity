@@ -23,7 +23,7 @@ import suite_unity
 
 
 flags.DEFINE_string('root_dir', os.getcwd(), 'Root directory for writing logs/summaries/checkpoints.')
-flags.DEFINE_string('exec_dir', None, 'Path to executables folder.')
+flags.DEFINE_string('env_path', None, 'Path to an executable.')
 flags.DEFINE_integer('num_iterations', 50000, 'Total number train/eval iterations to perform.')
 flags.DEFINE_string('gin_file', None, 'Paths to the gin-config file.')
 
@@ -63,8 +63,7 @@ def populate_replay_buffer(traj_data, replay_buffer, discount=1.0):
 @gin.configurable
 def train_eval(
         root_dir,
-        executables_dir,
-        env_name='RABMLPiscine3.0_AdjustedTraining.app',
+        env_path,
         discount=0.9,
         num_iterations=50000,
         num_pretrain_iterations=50000,
@@ -79,8 +78,6 @@ def train_eval(
         initial_collect_steps=1000,
         replay_buffer_capacity=100000):
     """A train and eval for DQN with unity environment"""
-
-    env_path = os.path.join(executables_dir, env_name)
 
     global_step = tf.compat.v1.train.get_or_create_global_step()
 
@@ -191,7 +188,7 @@ def main(_):
     if FLAGS.gin_file is not None:
         gin_file_path = os.path.join(FLAGS.root_dir, FLAGS.gin_file)
         gin.parse_config_file(gin_file_path)
-    train_eval(FLAGS.root_dir, FLAGS.exec_dir, num_iterations=FLAGS.num_iterations)
+    train_eval(FLAGS.root_dir, FLAGS.env_path, num_iterations=FLAGS.num_iterations)
 
 if __name__ == '__main__':
     flags.mark_flag_as_required('root_dir')
