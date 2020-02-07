@@ -70,12 +70,6 @@ def transform_protobuf(protobuf):
         np.array(protobuf.PlayerControls, dtype=np.int32),
         (protobuf_len, 10))
 
-    def transform_rewards(score):
-        nonlocal prev_score
-        reward = score - prev_score
-        prev_score = score
-        return reward
-
     def get_step_types(score):
         nonlocal prev_score
         nonlocal prev_step_type
@@ -86,9 +80,8 @@ def transform_protobuf(protobuf):
         prev_score = score
         return step_type
 
-    prev_score = 0
     rewards = np.array(
-        list(map(transform_rewards, current_bp_score)),
+        get_step_scores(current_bp_score),
         dtype=np.float32)
     prev_score = 0
     prev_step_type = None
@@ -106,6 +99,25 @@ def transform_protobuf(protobuf):
         'step_types': step_types,
         'next_step_types': next_step_types,
     }
+
+def get_step_scores(scores):
+    """
+    Return array where number at index represents
+    a reward for step with the same index
+    """
+    step_scores = [scores[0]]
+    last_score = scores[0]
+
+    for score in scores:
+        new_score = 0
+        if last_score != score:
+            new_score = score - step_scores[-1]
+            last_score = score
+        if new_score < 0:
+            new_score = 0
+        step_scores.append(new_score)
+
+    return step_scores
 
 def normalize_actions(actions):
     last_action = 0
