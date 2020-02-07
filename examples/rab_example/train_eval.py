@@ -1,4 +1,9 @@
 import os
+import gin
+
+from absl import app
+from absl import flags
+from absl import logging
 
 import tensorflow as tf
 
@@ -15,6 +20,14 @@ from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from protobuf_parser import decode_protobuf, transform_protobuf
 
 import suite_unity
+
+
+flags.DEFINE_string('root_dir', os.getcwd(), 'Root directory for writing logs/summaries/checkpoints.')
+flags.DEFINE_string('exec_dir', None, 'Path to executables folder.')
+flags.DEFINE_integer('num_iterations', 50000, 'Total number train/eval iterations to perform.')
+flags.DEFINE_string('gin_file', None, 'Paths to the gin-config file.')
+
+FLAGS = flags.FLAGS
 
 def populate_replay_buffer(traj_data, replay_buffer, discount=1.0):
     """ Populates replay buffer with decoded trajectory data
@@ -47,25 +60,26 @@ def populate_replay_buffer(traj_data, replay_buffer, discount=1.0):
 # todo: add checkpoints
 # todo: add tensorboard and summaries
 
+@gin.configurable
 def train_eval(
         root_dir,
+        executables_dir,
         env_name='RABMLPiscine3.0_AdjustedTraining.app',
-        discount=0.7,
-        num_iterations=10000,
-        num_pretrain_iterations=1000,
-        eval_interval=1000,
-        collect_interval=100,
-        log_interval=100,
-        fc_layer_params=(256, 256, 128),
+        discount=0.9,
+        num_iterations=50000,
+        num_pretrain_iterations=50000,
+        eval_interval=5000,
+        collect_interval=1000,
+        log_interval=500,
+        fc_layer_params=(256, 128),
         batch_size=64,
         learning_rate=1e-3,
-        collect_steps_per_iteration=100,
+        collect_steps_per_iteration=500,
         initial_collect=False,
         initial_collect_steps=1000,
         replay_buffer_capacity=100000):
     """A train and eval for DQN with unity environment"""
 
-    executables_dir = os.path.join(root_dir, 'executables')
     env_path = os.path.join(executables_dir, env_name)
 
     global_step = tf.compat.v1.train.get_or_create_global_step()
@@ -142,9 +156,16 @@ def train_eval(
         )
         train_step()
 
-def main():
+def main(_):
     """Main"""
-    train_eval(os.getcwd())
+    logging.set_verbosity(logging.INFO)
+    tf.compat.v1.enable_v2_behavior()
+    if FLAGS.gin_file is not None:
+        gin_file_path = os.path.join(FLAGS.root_dir, FLAGS.gin_file)
+        gin.parse_config_file(gin_file_path)
+    train_eval(FLAGS.root_dir, FLAGS.exec_dir, num_iterations=FLAGS.num_iterations)
 
 if __name__ == '__main__':
-    main()
+    flags.mark_flag_as_required('root_dir')
+    flags.mark_flag_as_required('exec_dir')
+    app.run(main)
