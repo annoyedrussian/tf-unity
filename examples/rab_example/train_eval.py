@@ -40,6 +40,8 @@ def populate_replay_buffer(traj_data, replay_buffer, discount=1.0):
     Returns:
         None
     """
+    logging.info('Started populating replay buffer')
+
     length = len(traj_data['step_types'])
 
     for idx in range(length):
@@ -57,6 +59,7 @@ def populate_replay_buffer(traj_data, replay_buffer, discount=1.0):
             step_type, observation, action, policy_info, next_step_type, reward, discount)
         replay_buffer.add_batch(traj)
 
+    logging.info('Finished populating replay buffer')
 
 @gin.configurable
 def train_eval(
@@ -106,10 +109,10 @@ def train_eval(
     with tf.compat.v2.summary.record_if(
         lambda: tf.math.equal(global_step % summary_interval, 0)):
         py_env = suite_unity.load(
-        env_path,
-        discount=discount,
-        worker_id=1,
-        use_visual=False)
+            env_path,
+            discount=discount,
+            worker_id=1,
+            use_visual=False)
         tf_env = tf_py_environment.TFPyEnvironment(py_env)
 
         py_eval_env = suite_unity.load(
@@ -119,58 +122,58 @@ def train_eval(
             use_visual=False)
         tf_eval_env = tf_py_environment.TFPyEnvironment(py_eval_env)
 
-    q_net = q_network.QNetwork(
-        tf_env.observation_spec(),
-        tf_env.action_spec(),
-        fc_layer_params=fc_layer_params)
+        q_net = q_network.QNetwork(
+            tf_env.observation_spec(),
+            tf_env.action_spec(),
+            fc_layer_params=fc_layer_params)
 
-    tf_agent = dqn_agent.DqnAgent(
-        tf_env.time_step_spec(),
-        tf_env.action_spec(),
-        q_network=q_net,
-        td_errors_loss_fn=common.element_wise_squared_loss,
-        optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
-        train_step_counter=global_step)
-    tf_agent.initialize()
+        tf_agent = dqn_agent.DqnAgent(
+            tf_env.time_step_spec(),
+            tf_env.action_spec(),
+            q_network=q_net,
+            td_errors_loss_fn=common.element_wise_squared_loss,
+            optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
+            train_step_counter=global_step)
+        tf_agent.initialize()
 
-    replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
-        data_spec=tf_agent.collect_data_spec,
-        batch_size=tf_env.batch_size,
-        max_length=replay_buffer_capacity)
+        replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+            data_spec=tf_agent.collect_data_spec,
+            batch_size=tf_env.batch_size,
+            max_length=replay_buffer_capacity)
 
-    inital_collect_policy = random_tf_policy.RandomTFPolicy(
-        tf_env.time_step_spec(), tf_env.action_spec())
+        inital_collect_policy = random_tf_policy.RandomTFPolicy(
+            tf_env.time_step_spec(), tf_env.action_spec())
 
-    if initial_collect:
-        dynamic_step_driver.DynamicStepDriver(
+        if initial_collect:
+            dynamic_step_driver.DynamicStepDriver(
+                tf_env,
+                inital_collect_policy,
+                observers=[replay_buffer.add_batch],
+                num_steps=initial_collect_steps).run()
+
+        collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
             tf_env,
-            inital_collect_policy,
-            observers=[replay_buffer.add_batch],
-            num_steps=initial_collect_steps).run()
-
-    collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
-        tf_env,
-        tf_agent.collect_policy,
+            tf_agent.collect_policy,
             observers=[replay_buffer.add_batch] + train_metrics,
-        num_episodes=1,
-    )
-    collect_step_driver = dynamic_step_driver.DynamicStepDriver(
-        tf_env,
-        tf_agent.collect_policy,
-        observers=[replay_buffer.add_batch],
-        num_steps=collect_steps_per_iteration)
+            num_episodes=1,
+        )
+        collect_step_driver = dynamic_step_driver.DynamicStepDriver(
+            tf_env,
+            tf_agent.collect_policy,
+            observers=[replay_buffer.add_batch],
+            num_steps=collect_steps_per_iteration)
 
-    eval_avg_return_metric = tf_metrics.AverageReturnMetric()
-    eval_driver = dynamic_episode_driver.DynamicEpisodeDriver(
-        tf_env,
-        tf_agent.policy,
-        observers=[eval_avg_return_metric],
-        num_episodes=1)
-    eval_step_driver = dynamic_step_driver.DynamicStepDriver(
-        tf_env,
-        tf_agent.policy,
-        observers=[eval_avg_return_metric],
-        num_steps=5000)
+        eval_avg_return_metric = tf_metrics.AverageReturnMetric()
+        eval_driver = dynamic_episode_driver.DynamicEpisodeDriver(
+            tf_env,
+            tf_agent.policy,
+            observers=[eval_avg_return_metric],
+            num_episodes=1)
+        eval_step_driver = dynamic_step_driver.DynamicStepDriver(
+            tf_env,
+            tf_agent.policy,
+            observers=[eval_avg_return_metric],
+            num_steps=5000)
 
         train_checkpointer = common.Checkpointer(
             ckpt_dir=train_dir,
@@ -180,11 +183,11 @@ def train_eval(
 
         train_checkpointer.initialize_or_restore()
 
-    dataset = replay_buffer.as_dataset(
-        num_parallel_calls=3,
-        sample_batch_size=batch_size,
-        num_steps=2).prefetch(3)
-    rb_iterator = iter(dataset)
+        dataset = replay_buffer.as_dataset(
+            num_parallel_calls=3,
+            sample_batch_size=batch_size,
+            num_steps=2).prefetch(3)
+        rb_iterator = iter(dataset)
 
         def eval_step():
             metric_utils.eager_compute(
@@ -197,39 +200,39 @@ def train_eval(
                 summary_prefix='Metrics')
             metric_utils.log_metrics(eval_metrics)
 
-    def train_step():
-        experience, _ = next(rb_iterator)
-        return tf_agent.train(experience)
+        def train_step():
+            experience, _ = next(rb_iterator)
+            return tf_agent.train(experience)
 
-    time_step = None
-    policy_state = tf_agent.collect_policy.get_initial_state(tf_env.batch_size)
+        time_step = None
+        policy_state = tf_agent.collect_policy.get_initial_state(tf_env.batch_size)
 
-    traj_data = decode_protobuf('protobuf/example3.b64', transform_protobuf)
-    populate_replay_buffer(traj_data, replay_buffer, discount=discount)
+        traj_data = decode_protobuf('protobuf/example3.b64', transform_protobuf)
+        populate_replay_buffer(traj_data, replay_buffer, discount=discount)
 
         # eval_step()
 
-    for _ in range(num_pretrain_iterations):
-        train_step()
-        step = tf_agent.train_step_counter.numpy()
-        if step % log_interval == 0:
-            print('step {}'.format(step))
+        for _ in range(num_pretrain_iterations):
+            train_step()
+            step = tf_agent.train_step_counter.numpy()
+            if step % log_interval == 0:
+                print('step {}'.format(step))
 
         eval_step()
 
-    for _ in range(num_iterations):
-        train_step()
+        for _ in range(num_iterations):
+            train_step()
 
-        step = tf_agent.train_step_counter.numpy()
+            step = tf_agent.train_step_counter.numpy()
 
-        if step % collect_interval == 0:
-            tf_env.reset()
-            collect_driver.run()
+            if step % collect_interval == 0:
+                tf_env.reset()
+                collect_driver.run()
 
-        if step % log_interval == 0:
-            print('step {}'.format(step))
+            if step % log_interval == 0:
+                print('step {}'.format(step))
 
-        if step % eval_interval == 0:
+            if step % eval_interval == 0:
                 train_checkpointer.save(global_step=global_step.numpy())
                 eval_step()
 
