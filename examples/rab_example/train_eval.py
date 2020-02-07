@@ -149,6 +149,13 @@ def train_eval(
     traj_data = decode_protobuf('protobuf/example3.b64', transform_protobuf)
     populate_replay_buffer(traj_data, replay_buffer, discount=discount)
 
+    for _ in range(num_pretrain_iterations):
+        train_step()
+
+        step = tf_agent.train_step_counter.numpy()
+        if step % log_interval == 0:
+            print('step {}'.format(step))
+
     for _ in range(num_iterations):
         time_step, policy_state = collect_driver.run(
             time_step=time_step,
