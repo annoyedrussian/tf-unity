@@ -120,7 +120,13 @@ def train_eval(
         observers=[replay_buffer.add_batch],
         num_steps=initial_collect_steps).run()
 
-    collect_driver = dynamic_step_driver.DynamicStepDriver(
+    collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
+        tf_env,
+        tf_agent.collect_policy,
+        observers=[replay_buffer.add_batch],
+        num_episodes=1,
+    )
+    collect_step_driver = dynamic_step_driver.DynamicStepDriver(
         tf_env,
         tf_agent.collect_policy,
         observers=[replay_buffer.add_batch],
@@ -132,6 +138,11 @@ def train_eval(
         tf_agent.policy,
         observers=[eval_avg_return_metric],
         num_episodes=1)
+    eval_step_driver = dynamic_step_driver.DynamicStepDriver(
+        tf_env,
+        tf_agent.policy,
+        observers=[eval_avg_return_metric],
+        num_steps=5000)
 
     dataset = replay_buffer.as_dataset(
         num_parallel_calls=3,
