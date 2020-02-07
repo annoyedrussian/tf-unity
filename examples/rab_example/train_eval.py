@@ -21,7 +21,6 @@ from protobuf_parser import decode_protobuf, transform_protobuf
 
 import suite_unity
 
-
 flags.DEFINE_string('root_dir', os.getcwd(), 'Root directory for writing logs/summaries/checkpoints.')
 flags.DEFINE_string('env_path', None, 'Path to an executable.')
 flags.DEFINE_integer('num_iterations', 50000, 'Total number train/eval iterations to perform.')
@@ -188,9 +187,8 @@ def main(_):
     if FLAGS.gin_file is not None:
         gin_file_path = os.path.join(FLAGS.root_dir, FLAGS.gin_file)
         gin.parse_config_file(gin_file_path)
-    train_eval(FLAGS.root_dir, FLAGS.env_path, num_iterations=FLAGS.num_iterations)
+    train_eval(FLAGS.root_dir, env_path=FLAGS.env_path, num_iterations=FLAGS.num_iterations)
 
 if __name__ == '__main__':
-    flags.mark_flag_as_required('root_dir')
-    flags.mark_flag_as_required('exec_dir')
+    flags.mark_flag_as_required('env_path')
     app.run(main)
