@@ -114,11 +114,11 @@ def train_eval(
         tf_env.time_step_spec(), tf_env.action_spec())
 
     if initial_collect:
-    dynamic_step_driver.DynamicStepDriver(
-        tf_env,
-        inital_collect_policy,
-        observers=[replay_buffer.add_batch],
-        num_steps=initial_collect_steps).run()
+        dynamic_step_driver.DynamicStepDriver(
+            tf_env,
+            inital_collect_policy,
+            observers=[replay_buffer.add_batch],
+            num_steps=initial_collect_steps).run()
 
     collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
         tf_env,
@@ -168,11 +168,21 @@ def train_eval(
             print('step {}'.format(step))
 
     for _ in range(num_iterations):
-        time_step, policy_state = collect_driver.run(
-            time_step=time_step,
-            policy_state=policy_state
-        )
         train_step()
+
+        step = tf_agent.train_step_counter.numpy()
+
+        if step % collect_interval == 0:
+            tf_env.reset()
+            collect_driver.run()
+
+        if step % log_interval == 0:
+            print('step {}'.format(step))
+
+        if step % eval_interval == 0:
+            tf_env.reset()
+            eval_step_driver.run()
+            print('step {}: avg return {}'.format(step, eval_avg_return_metric.result()))
 
 def main(_):
     """Main"""
