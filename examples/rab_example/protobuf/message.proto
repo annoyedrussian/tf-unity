@@ -1,3 +1,54 @@
+/*
+   [ProtoMember(1)]
+   public List<float> rotationGlobalClawArm { get; set; } = new List<float>();
+   [ProtoMember(2)]
+   public List<float> rotationGlobalStickArm { get; set; } = new List<float>();
+   [ProtoMember(3)]
+   public List<float> rotationClawArm { get; set; } = new List<float>();
+   [ProtoMember(4)]
+   public List<float> rotationStickArm { get; set; } = new List<float>();
+   [ProtoMember(5)]
+   public List<float> ClawCartPosition { get; set; } = new List<float>();
+   [ProtoMember(6)]
+   public List<float> ClawCartVelocity { get; set; } = new List<float>();
+   [ProtoMember(7)]
+   public List<float> StickCartPosition { get; set; } = new List<float>();
+   [ProtoMember(8)]
+   public List<float> ClawPosition { get; set; } = new List<float>();
+   [ProtoMember(9)]
+   public List<bool> ClawOpen { get; set; } = new List<bool>();
+   [ProtoMember(10)]
+   public List<bool> ClawFacingGround { get; set; } = new List<bool>();
+   [ProtoMember(11)]
+   public List<byte[]> ImageByteBlock { get; set; } = new List<byte[]>();
+   [ProtoMember(12)]
+   public List<byte[]> ImageByteBP { get; set; } = new List<byte[]>();
+   [ProtoMember(13)]
+   public List<Int32> CurrentBPScore { get; set; } = new List<Int32>();
+   [ProtoMember(14)]
+   public List<Int32> CurrentScore { get; set; } = new List<Int32>();
+   [ProtoMember(15)]
+   public List<bool> PlayerControls { get; set; } = new List<bool>();
+   [ProtoMember(16)]
+   public List<Int32> BlockCount { get; set; } = new List<Int32>();
+   [ProtoMember(17)]
+   public List<float> BlocksPosition { get; set; } = new List<float>();
+   [ProtoMember(18)]
+   public List<Int32> BunnyCount { get; set; } = new List<Int32>();
+   [ProtoMember(19)]
+   public List<float> BunniesPosition { get; set; } = new List<float>();
+   [ProtoMember(20)]
+   public List<float> Reward { get; set; } = new List<float>();
+   [ProtoMember(21)]
+   public string Name { get; set; }
+   [ProtoMember(22)]
+   public string FeedBack { get; set; }
+   [ProtoMember(23)]
+   public Int32 FinalScore { get; set; }
+   [ProtoMember(24)]
+   public List<bool> switchScene { get; set; } = new List<bool>();
+*/
+
 syntax = 'proto3';
 
 message ProtoGameDetail {
@@ -20,8 +71,9 @@ message ProtoGameDetail {
    repeated float BlocksPosition = 17;
    repeated int32 BunnyCount = 18;
    repeated float BunniesPosition = 19;
-   string Name = 20;
-   string FeedBack = 21;
-   int32 FinalScore = 22;
-   repeated bool switchScene = 23;
+   repeated float Reward = 20;
+   string Name = 21;
+   string FeedBack = 22;
+   int32 FinalScore = 23;
+   repeated bool switchScene = 24;
 }
