@@ -220,17 +220,17 @@ def train_eval(
         load_user_data(user_data_dir)
 
         # eval_step()
-
         for _ in range(num_pretrain_iterations):
-            train_step()
+            train_loss = train_step().loss
             step = tf_agent.train_step_counter.numpy()
             if step % log_interval == 0:
-                print('step {}'.format(step))
-
+                logging.info('step: {} loss: {}'.format(step, train_loss))
         eval_step()
 
         for _ in range(num_iterations):
-            train_step()
+            train_loss = None
+            for _ in range(train_steps_per_iteration):
+                train_loss = train_step().loss
 
             step = tf_agent.train_step_counter.numpy()
 
@@ -239,7 +239,7 @@ def train_eval(
                 collect_driver.run()
 
             if step % log_interval == 0:
-                print('step {}'.format(step))
+                logging.info('step: {} loss: {}'.format(step, train_loss))
 
             if step % eval_interval == 0:
                 train_checkpointer.save(global_step=global_step.numpy())
