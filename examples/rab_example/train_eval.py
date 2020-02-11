@@ -68,6 +68,7 @@ def train_eval(
         discount=0.9,
         num_iterations=50000,
         num_pretrain_iterations=50000,
+        train_steps_per_iteration=500,
         eval_interval=5000,
         num_eval_episodes=1,
         collect_interval=1000,
