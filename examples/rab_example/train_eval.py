@@ -107,7 +107,7 @@ def train_eval(
     global_step = tf.compat.v1.train.get_or_create_global_step()
 
     with tf.compat.v2.summary.record_if(
-        lambda: tf.math.equal(global_step % summary_interval, 0)):
+            lambda: tf.math.equal(global_step % summary_interval, 0)):
         py_env = suite_unity.load(
             env_path,
             discount=discount,
