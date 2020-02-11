@@ -207,8 +207,17 @@ def train_eval(
         time_step = None
         policy_state = tf_agent.collect_policy.get_initial_state(tf_env.batch_size)
 
-        traj_data = decode_protobuf('protobuf/example3.b64', transform_protobuf)
-        populate_replay_buffer(traj_data, replay_buffer, discount=discount)
+        def load_user_data(user_data_dir):
+            logging.info('Loading user data...')
+            for filename in os.listdir(user_data_dir):
+                if filename.endswith('b64'):
+                    logging.info('Found {}'.format(filename))
+                    traj_data = decode_protobuf(
+                        os.path.join(user_data_dir, filename),
+                        transform_protobuf)
+                    populate_replay_buffer(traj_data, replay_buffer, discount=discount)
+        user_data_dir = os.path.join(root_dir, 'user_data')
+        load_user_data(user_data_dir)
 
         # eval_step()
 
