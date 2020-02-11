@@ -69,67 +69,76 @@ def transform_protobuf(protobuf):
     actions = np.reshape(
         np.array(protobuf.PlayerControls, dtype=np.int32),
         (protobuf_len, 10))
+    actions = normalize_actions(actions)
 
-    def get_step_types(score):
-        nonlocal prev_score
-        nonlocal prev_step_type
-
-        if prev_step_type == ts.StepType.LAST or prev_step_type is None:
-            return ts.StepType.FIRST
-        step_type = ts.StepType.LAST if score > prev_score else ts.StepType.MID
-        prev_score = score
-        return step_type
-
-    rewards = np.array(
-        get_step_scores(current_bp_score),
-        dtype=np.float32)
-    prev_score = 0
-    prev_step_type = None
-    step_types = np.array(
-        list(map(get_step_types, protobuf.CurrentScore)),
-        dtype=np.int32)
+    # rewards = normalize_rewards(protobuf.Reward)
+    rewards = get_rewards_from_scores(current_bp_score)
+    rewards = np.expand_dims(rewards, axis=1)
+    step_types = np.array(get_step_types(protobuf.CurrentScore), dtype=np.int32)
     next_step_types = np.concatenate((step_types[1:], [ts.StepType.LAST]))
+
     log('step types len is {}'.format(len(step_types)))
     log('next step types len is {}'.format(len(next_step_types)))
 
     return {
-        'actions': normalize_actions(actions),
+        'actions': actions,
         'observations': observations,
         'rewards': rewards,
         'step_types': step_types,
         'next_step_types': next_step_types,
     }
 
-def get_step_scores(scores):
-    """
-    Return array where number at index represents
-    a reward for step with the same index
-    """
-    step_scores = [scores[0]]
-    last_score = scores[0]
+def get_rewards_from_scores(scores):
+    rewards = []
 
     for score in scores:
-        new_score = 0
-        if last_score != score:
-            new_score = score - step_scores[-1]
-            last_score = score
-        if new_score < 0:
-            new_score = 0
-        step_scores.append(new_score)
+        if score != 0:
+            rewards.append(score)
+        else:
+            rewards.append(-1)
+    return np.array(rewards, dtype=np.float32)
 
-    return step_scores
+def normalize_rewards(rewards):
+    prev_reward = 0.0
+    normalized_rewards = []
 
+    for reward in rewards:
+        normalized_rewards.append(reward - prev_reward)
+        prev_reward = reward
+
+    return np.array(normalized_rewards, dtype=np.float32)
+
+def get_step_types(scores):
+    """
+    Returns array of step types
+    """
+    step_types = [ts.StepType.FIRST]
+    prev_score = scores[0]
+    for score in scores[1:]:
+        curr_step_type = ts.StepType.LAST if score > prev_score else ts.StepType.MID
+        prev_score = score
+        step_types.append(curr_step_type)
+    return step_types
+
+# todo: remove trajs with action 0
 def normalize_actions(actions):
-    last_action = 0
+    """
+    Reduces every action to action index
+    Example: action = [0, 0, 0, 0, 1]
+    Result: action = [4]
+    """
+    actions_mapper = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 9, 8: 7, 9: 8 }
     normalized_actions = []
 
     for action in actions:
         current_action = np.where(action == 1)[0]
-        current_action = last_action if len(current_action) == 0 else current_action[0]
-        last_action = 0 if current_action == 9 else current_action
+        current_action = current_action[0] if len(current_action) else 0
+        current_action = actions_mapper[current_action]
         normalized_actions.append([current_action])
 
     return np.array(normalized_actions, dtype=np.int32)
 
 if __name__ == '__main__':
-    asd = decode_protobuf('protobuf/example3.b64', transform_protobuf)
+    # asd = decode_protobuf('v1/user_data/actions', transform_protobuf)
+    # asd = decode_protobuf('v1/user_data/move open claw', transform_protobuf)
+    asd = decode_protobuf('v1/user_data/Ivan Kozlov 0208110914421000.b64', transform_protobuf)
