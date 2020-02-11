@@ -242,6 +242,7 @@ def train_eval(
                 logging.info('step: {} loss: {}'.format(step, train_loss))
 
             if step % eval_interval == 0:
+                eval_step()
                 train_checkpointer.save(global_step=global_step.numpy())
                 eval_step()
 
