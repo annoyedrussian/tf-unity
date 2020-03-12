@@ -38,14 +38,16 @@
    [ProtoMember(19)]
    public List<float> BunniesPosition { get; set; } = new List<float>();
    [ProtoMember(20)]
-   public List<float> Reward { get; set; } = new List<float>();
+   public List<float> StepReward { get; set; } = new List<float>();
    [ProtoMember(21)]
-   public string Name { get; set; }
+   public List<float> CumulativeReward { get; set; } = new List<float>();
    [ProtoMember(22)]
-   public string FeedBack { get; set; }
+   public string Name { get; set; }
    [ProtoMember(23)]
-   public Int32 FinalScore { get; set; }
+   public string FeedBack { get; set; }
    [ProtoMember(24)]
+   public Int32 FinalScore { get; set; }
+   [ProtoMember(25)]
    public List<bool> switchScene { get; set; } = new List<bool>();
 */
 
@@ -71,9 +73,10 @@ message ProtoGameDetail {
    repeated float BlocksPosition = 17;
    repeated int32 BunnyCount = 18;
    repeated float BunniesPosition = 19;
-   repeated float Reward = 20;
-   string Name = 21;
-   string FeedBack = 22;
-   int32 FinalScore = 23;
-   repeated bool switchScene = 24;
+   repeated float StepReward = 20;
+   repeated float CumulativeReward = 21;
+   string Name = 22;
+   string FeedBack = 23;
+   int32 FinalScore = 24;
+   repeated bool switchScene = 25;
 }

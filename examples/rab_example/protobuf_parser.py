@@ -31,6 +31,8 @@ def transform_protobuf(protobuf):
     log('BlockCount length is {}'.format(len(protobuf.BlockCount)))
     log('BlocksPosition length is {}'.format(len(protobuf.BlocksPosition)))
     log('CurrentBPScore length is {}'.format(len(protobuf.CurrentBPScore)))
+    log('PlayerControls length is {}'.format(len(protobuf.PlayerControls)))
+    log('StepRewards length is {}'.format(len(protobuf.StepReward)))
 
     protobuf_len = len(protobuf.CurrentBPScore)
     max_blocks = protobuf.BlockCount[0]
@@ -68,12 +70,10 @@ def transform_protobuf(protobuf):
 
     actions = np.reshape(
         np.array(protobuf.PlayerControls, dtype=np.int32),
-        (protobuf_len, 10))
+        (protobuf_len, 9))
     actions = normalize_actions(actions)
 
-    # rewards = normalize_rewards(protobuf.Reward)
-    rewards = get_rewards_from_scores(current_bp_score)
-    rewards = np.expand_dims(rewards, axis=1)
+    rewards = np.expand_dims(np.array(protobuf.StepReward, dtype=np.float32), axis=1)
     step_types = np.array(get_step_types(protobuf.CurrentScore), dtype=np.int32)
     next_step_types = np.concatenate((step_types[1:], [ts.StepType.LAST]))
 
@@ -127,18 +127,16 @@ def normalize_actions(actions):
     Example: action = [0, 0, 0, 0, 1]
     Result: action = [4]
     """
-    actions_mapper = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 9, 8: 7, 9: 8 }
     normalized_actions = []
 
     for action in actions:
         current_action = np.where(action == 1)[0]
-        current_action = current_action[0] if len(current_action) else 0
-        current_action = actions_mapper[current_action]
+        current_action = current_action[0] + 1 if len(current_action) else 0
         normalized_actions.append([current_action])
 
     return np.array(normalized_actions, dtype=np.int32)
 
 if __name__ == '__main__':
-    # asd = decode_protobuf('v1/user_data/actions', transform_protobuf)
+    asd = decode_protobuf('v1/user_data/ivan2.b64', transform_protobuf)
     # asd = decode_protobuf('v1/user_data/move open claw', transform_protobuf)
-    asd = decode_protobuf('v1/user_data/Ivan Kozlov 0208110914421000.b64', transform_protobuf)
+    # asd = decode_protobuf('protobuf/ivan.b64', transform_protobuf)

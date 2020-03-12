@@ -80,6 +80,9 @@ def train_eval(
         initial_collect=False,
         initial_collect_steps=1000,
         replay_buffer_capacity=100000,
+        #params for checkpoint
+        checkpoint_interval=5000,
+        #params for summary
         summary_interval=1000,
         summaries_flush_secs=10):
     """A train and eval for DQN with unity environment"""
@@ -235,6 +238,10 @@ def train_eval(
 
             step = tf_agent.train_step_counter.numpy()
 
+            for train_metric in train_metrics:
+                train_metric.tf_summaries(
+                    train_step=global_step, step_metrics=train_metrics)
+
             if step % collect_interval == 0:
                 tf_env.reset()
                 collect_driver.run()
@@ -242,9 +249,10 @@ def train_eval(
             if step % log_interval == 0:
                 logging.info('step: {} loss: {}'.format(step, train_loss))
 
-            if step % eval_interval == 0:
-                eval_step()
+            if step % checkpoint_interval:
                 train_checkpointer.save(global_step=global_step.numpy())
+
+            if step % eval_interval == 0:
                 eval_step()
 
 def main(_):
